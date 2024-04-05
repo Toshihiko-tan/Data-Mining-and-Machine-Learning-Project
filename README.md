@@ -1,2 +1,283 @@
 # STATS-415-Final-Project
  STATS 415 Final Project by Michael Williams, Nikhil Dayal, Samuel Tan, & Sarah Lim at the University of Michigan. The project is an investigation into factors influencing household poverty levels in the U.S., utilizing lasso regression, random forest trees, and cross-validation on CDC demographics data.
+```
+OpenExplorationReport—STATS 415 FinalProject
+MichaelWilliams,NikhilDayal,SamuelTan,SarahLim
+```
+**I. Introduction**
+IntheUnitedStates,thereexistsadiversespectrumofeconomiccircumstances,ranging
+fromindividualsbelowthepovertylinetothosewithlowincomes,andthosethatdonotfallinto
+eithercategory.Thedisparitybetweenincomelevelsresultsfromanintricateinterplayofvarious
+factors,suchaseducationalachievements,numberofmembersinahousehold,andhealth
+outcomes.Thus,investigatingthefactorsthatwieldsubstantialinfluenceonahousehold's
+povertylevelisparamountincomprehendingthediverseeconomiclandscape.
+
+Thisreportstrivestoanswertwoquestionsregardingthecomplexitiesofeconomic
+well-being:1)whichdemographicandhealth-relatedpredictorsdonotinfluenceone’sincome
+leveland2)whatthekeydeterminantsthatsignificantlycontributetodisparitiesinpoverty
+statusare.OurresponsevariablewillbeINDFMPIR(ratiooffamilyincometopoverty)and
+income_level,whichisacategoricalvariablewedefined.Wewillexplainmoreaboutour
+responsevariablesinthenextsection.
+
+Weachievethisthroughtheuseofthreedifferentstatisticalmethods–lassoregression,
+randomforesttrees,andcross-validation–onpublicdemographicsdatacollectedbytheCDC.
+Specifically,thefirstquestionwillbeansweredvialassoregression’sabilitytofacilitatevariable
+selection,whichdeterminesthelessinfluentialpredictors.Thesecondquestionwillbeexplored
+withrandomforesttreesthathelpidentifythemostsignificantinfluencesinprediction.
+
+**II. Data**
+Thedatausedinthisexplorationisthe2017-2018demographicinformation,sourced
+fromtheNationalHealthandNutritionExaminationSurvey(NHANES)^1 .Specifically,the
+datasetconsistsofavarietyofvariablesrelatedtoparticipants'characteristics,suchasage,
+gender,race/ethnicity,education,andhouseholdincome.Theoriginaldatasetcontainedseveral
+missingvalues,representedby‘.’andinformationwhichparticipantswerenotwillingorfailed
+todisclose,representedby‘9,’‘7,’‘99,’or‘77’dependingonvariables;forthepurposeofthis
+exploration,allthevariableswithmorethan 1250 missingrecordswereomitted.
+
+Furtherprocessingthedata,weconvertedallcategoricalfeaturesintofactorvariables,
+beingmindfulnottoconvertquantitativevariables.Wealsoscaledallnumericalvariablesto
+haveameanof 0 andavarianceof1,becauseallthenumericalvariablesinthedatasetareon
+differentscales.Wealsodroppedvariablesthatwouldhavenocorrelationwiththeresponse,
+suchasRIDSTATR(“Interview/ExaminationStatus”),asthesevariablestendtobe
+housekeepingdata.Thefulllistofthesehousekeepingvariablesweremovedare:"SEQN",
+
+(^1) https://wwwn.cdc.gov/Nchs/Nhanes/2017-2018/DEMO_J.htm#DMDHHSZE
+
+
+## "RIDSTATR","RIDEXMON","SIAPROXY","SIAINTRP","FIAPROXY","FIAINTRP",
+
+"WTINT2YR","WTMEC2YR","SDMVPSU", and"SDMVSTRA."Thereisonehousekeeping
+variableswhichwedecidedtokeep,namelySIALANG,thisvariablerepresentthelanguagethat
+wasusedtocarryoutthesurvey.Webelievethatthesetwovariablesarerepresentativeofthe
+interviewees’Englishskills,whichmightberelativetotheirincome,sowedecidedtokeepthese
+twovariables.
+
+Wealsowanttonotethatwewon’tbeusingINDHHIN2andINDFMIN2inour
+statisticalanalysis.Ourresponsevariablesarehighlydependentonthesetwovariables,and
+ExploratoryDataAnalysisshowedaveryhighcorrelationbetweenthesetwovariablesandour
+responsevariableratiooffamilyincometopoverty.Exploringthesetwovariablesgaveusa
+goodimpressionofthedistributionoffamilyandhouseholdincomeinourdataset,butour
+questionsareconcernedaboutotherfactorsthatcanaffectthefamilyincome.Therefore,we
+haveremovedthesetwovariablesfromthedataset,aswewon’tbeusingthesevariablesinthe
+followingsections.
+
+Tobetterunderstandthedifferentincomegroupsinourdatasetandfacilitateassigning
+participantsintodifferentincomegroups,wehavealsocreatedanabstractionofthevariable
+INDFMPIR(ratiooffamilyincometopoverty)touseasourresponsevariable.Todothis,we
+createdanothercolumninthedatasetcalledincome_level,andhadthiscolumntakethevalue0,
+1,or 2 whenINDFMPIRwaslessthanorequalto 1 (poverty),between 1 and 2 (lowincome),
+andgreaterthan 2 (sustainableincome),respectively.Afterdatacleaningandaddinganextra
+column,weareleftwith 7164 observationsof 17 variables.
+
+Belowarevisualizationsofsomevariablesinourdataset:
+
+```
+Figure1:NumberofChildrenPerHousehold,byAgeGroup
+```
+
+Wecanseefromtheplotsabovethatmostoftheparticipantsinourdatasethaveno
+childrenintheirhouseholds,either 5 yearsoryoungeror6-17yearsold,followedbyhouseholds
+with 1 childof 5 yearsoryoungeror6-17yearsold,then 2 childrenand 3 ormorechildren.This
+givesusabasicoverlookofthegeneralfamilystructureoftheparticipantsinthedataset.
+
+```
+Figure2:Boxplotofgenderbyratiooffamilyincometopoverty
+```
+Thepresentedboxplotillustratesthedistributionoftheratiooffamilyincometopoverty
+categorizedbygender.Notably,themedian,1stquartile,and3rdquartilevaluespertainingtothe
+aforementionedratioareobservedtobenearlyindistinguishablebetweenthemaleandfemale
+groups.Thisparityimpliesthatgendermaynotexhibitastatisticallysignificantinfluenceonan
+individual'sincomelevelwithinthecontextofthisanalysis.Wewouldbeexploringthis
+relationshipfurtherinthefollowingsections.
+
+```
+Figure3:IncomeLevelDistribution
+```
+
+Thevisualrepresentationabovedepictsourtworesponsevariables.Ontheleft,most
+participantsfallintothesustainableincomecategory,withasmallerproportioninlow-income
+andpoverty.Thisdistributionisinfluencedbyourdefinition,classifyingparticipantswitha
+familyincome-to-povertyratioabove2.0assustainableincome.Theright-sidedplotindicatesa
+concentrationofparticipantswithafamilyincome-to-povertyratioof5,asallvaluesequaltoor
+exceeding 5 weresetto 5 inthedataset.Tofacilitatemodelfitting,weproposeexcluding
+high-incomeparticipants,definedasthosewitharatioof 5 orhigher,despitepotential
+informationloss.Ourfocusisonunderstandingfactorsimpactinglow-incomeandimpoverished
+groups.Afterremovinghigh-incomeparticipants,aslightrightwardskewnessisevidentinthe
+distributionofthefamilyincome-to-povertyratio.
+
+**III. Methods**
+Aspreviouslymentioned,thefirststatisticalmethodusedinthisexplorationistheL
+regularization,orLASSO,whichcansimultaneouslyperformparameterestimationandvariable
+selectionbyintroducingapenaltyterm.WewillbefittingLASSOwiththeoriginalINDFMPIR
+values(excludingvaluesthatareequalto5)astheresponse,andalltheothervariablesexcept
+thevariableincome_levelasthepredictor.Therearesomecategoricalvariablesinourdataset,
+butwehavechangeditintofactorsinthedatasectionpartofthereport,sodummyvariableswill
+beusedtofittheLASSOmodel.SincetheoriginalINDFMPIRvaluesarecontinuous
+quantitativevariables,wecanfitaLASSOmodeltopredictthevalues.AsseeninISLR2^2 ,the
+LASSOcoefficientsminimizethequantity
+
+```
+𝑖= 1
+```
+```
+𝑛
+∑(𝑦𝑖−β 0 −
+𝑗= 1
+```
+```
+𝑝
+∑β𝑗𝑥𝑖𝑗)^2 + λ
+𝑗= 1
+```
+```
+𝑝
+∑|β𝑗| = 𝑅𝑆𝑆 + λ
+𝑗= 1
+```
+```
+𝑝
+∑|β𝑗|
+```
+Thepenaltyterm,controlledbyatuningparameterλ,inducesshrinkageofsome
+coefficientstowardszeroandencouragessparsityinthemodel.Thisfeaturefacilitatesvariable
+selection,allowingustofocusonasubsetofthevariableswiththemostsubstantialimpactin
+predictingtheresponsevariable,whichcaninturnhelpustoanswerthequestionsweproposed
+inthebeginning.Sincetheoriginaldatasetcontainsmorethan 15 predictors,itisimportantto
+knowwhichvariablesaresignificantinpredictingtheresponsevariable(ratiooffamilyincome
+topoverty)andexcludinglessinfluentialvariables.
+
+Anotherusefulstatisticaltoolusedinthisexplorationisrandomforest.Byleveragingan
+ensembleofdecisiontrees,randomforestscaneffectivelycapturecomplexrelationshipsand
+interactionsamongpredictors.Fortherandomforest,wewillbeusingthecategoricalvariable
+wecreated,income_level,asresponse,andalltheothervariablesexceptINDFMPIR,the
+originalpovertyratiovalues,aspredictors.Recallthatincome_levelisacategoricalvariable
+
+(^2) G.James,D.Witten,T.Hastie,R.Tibshirani(2013).AnIntroductiontoStatisticalLearningwithApplicationsin
+R.SecondEdition.Springer.
+
+
+withthreelevels:“impoverished,”“low-income,”and“sustainable,”predictingincome_level
+basedonothervariableswillbeaclassificationproblem,whichistheperfectfitforrandom
+forest.Thenatureofthismethodenablesustorankthepredictorsbasedontheirimportancein
+contributingtothepredictivepowerofthemodel.Thevariablesthatconsistentlycontributeto
+accuratepredictionsacrossdifferenttreesareassignedhigherimportancescores.Thisiswhat
+makesrandomforestsapowerfultool,asitnotonlyfacilitatestheidentificationofkey
+predictorsbutalsooffersinsightsintotherelativeimpactofvariablesontheresponsevariable.
+
+Cross-validationisemployedtoselecttheregularizationparameterinlasso.Inthe
+contextofLassoregression,cross-validationassistsinidentifyingtheoptimalλvaluethat
+balancesmodelcomplexityandpredictiveaccuracy.Itallowsforacomprehensiveassessmentof
+themodel’sabilitytogeneralizetonewdata,helpingpreventoverfittingandensuringthatthe
+selectedparameteriswell-suited.
+
+**IV. Results**
+Weuseda5-foldcross-validationtoselectaλof0.001754996.Afterrunningthelasso
+regressiononthedata,notably,twofeatureshaditscoefficientdroppedto0,RIAGENDR
+(dummyvariableforfemalegender)andRIDAGEYR(ageofparticipant).
+
+```
+Figure4:PenalizedCoefficientsforeachvariableinLASSORegression
+```
+Whileonlythedummyvariableforfemalegender’scoefficientwassettozero,the
+dummyvariableformalegenderwasalsoverylow,whichisinlinewiththerelationshipwe
+exploredintheExploratoryDataAnalysis,presentedasFigure2.Thus,wechosetodrop
+RIAGENDRentirely. Welikelywouldhaveseenmorefeaturesgetdroppedhadwenotcleaned
+
+
+thedatainourpreprocessingphase.Thelowlambdavaluerepresentsaweakerpenalty,which
+mayhavehurtourfeatureselectionasthelambdamaynothavebeensufficientlylargeenoughto
+imposeaheavierpenaltyandfilteroutmorefeatures.ThisleftuswiththevariablesRIDAGEYR
+(ageattimeofscreening),RIDRETH3(Race/HispanicOriginw/Non-HispanicAsian),
+DMDBORN4(CountryofBirth),DMDCITZN(CitizenshipStatus),SIALANG(Languageof
+SamplePersonInterview),DMDHHSIZ(TotalNumberofPeopleinHousehold),DMDFMSIZ
+(TotalNumberofPeopleinFamily),DMDHHSZA(#ofchildren 5 YearsofYoungerin
+Household),DMDHHSZB(#ofChildren6-17YearsOldinHousehold),DMDHHSZE(#of
+Adults 60 YearsorOlderinHousehold),DMDHRGND(HouseholdReferencePerson’sGender),
+DMDHRAGZ(HouseholdReferencePerson’sAgeinYears),DMDHREDZ(Household
+ReferencePerson’sEducationLevel),&DMDHRMAZ(HouseholdReferencePerson’sMarita
+Status)ashavingthemostimpactonINDFMPIR.
+
+Wethenranarandomforestmodelontheremainingvariables.Thefigurebelowshows
+theorderofvariablesintermsoftheirimportanceinpredictingthehouseholdpovertylevel.
+
+```
+Figure5:RankofVariableImportanceinPredictingHouseholdPovertyLevel
+```
+ThemostimportantvariableselectedbyboththeRandomForestandLASSOmodelis
+educationlevel.Itisacommonperceptionthatindividualswithhigherlevelsofeducationtend
+tohavebetterjobopportunities,henceahigherlevelofincome.Therefore,itmakessensethat
+one’seducationlevelhasasignificantimpactontheirpovertylevel.Whileourmaingoalis
+interpretationofthemodel,wearealsointerestedinhowourmodelperformswithregardsto
+predictingthefamilyincomestatus.Belowisaconfusionmatrix,whichrepresentstheaccuracy
+ofourrandomforestmodel:
+
+
+```
+Figure 6: Random forest confusion matrix
+```
+The three large boxes positioned diagonally represent the correct predictions. Those
+boxes are the largest out of all 9 boxes, which means our model performed fairly well in
+predicting the correct household poverty level. In fact, the model showed a 0.86 accuracy in its
+predictions^3. This suggests that our model (and thus its respective Gini Coefficients) are accurate.
+
+**V. Conclusion**
+In this comprehensive analysis, our objective was to discern potential influences on a
+household's poverty level. The ensuing key findings and insights derived from our meticulous
+analysis are succinctly summarized below.
+
+At the outset of this report, we posited two overarching questions guiding our analysis:
+
+1. **Identification of Non-Influential Predictors** : In addressing the first question, pertaining
+    to demographic and health-related predictors that do not sway family income levels, we
+    employed a LASSO model detailed in Part IV. Notably, the coefficient for RIAGENDR
+    (Gender of the participant) and RIDAGEYR (age at time of screening) were set to zero,
+    signifying their insignificance in predicting the Ratio of family income to poverty. Thus,
+    we contend that gender and age emerge as demographic predictors with negligible
+    influence on one's family income level.
+2. **Key Determinants of Poverty Disparities** : The second question delved into the key
+    determinants contributing significantly to disparities in poverty status. In the same section
+
+(^3) See attached code for calculations.
+
+
+```
+ofthereport(PartIV),arandomforestmodelwasfittedtopredictparticipants'income
+status.TheinclusionofameandecreaseGiniplot,whichgaugesthecontributionofeach
+variabletothehomogeneityofnodesandleavesintheresultingrandomforest,revealed
+thatDMDHREDZ(educationlevelatthetimeofscreening)scoredthehighestGini
+values.Thisunderscoresitsparamountimportanceinpredictingfamilyincomestatus,
+suggestingthateducationlevelhelpstopredictdisparitiesinpovertystatuswithinour
+dataset.Thus,wecontendthateducationlevelcontributessignificantlytodisparitiesin
+povertystatus.
+```
+```
+Itisincumbentuponustoacknowledgethelimitationsintrinsictoouranalysis.Onesuch
+limitationarisesfromthedataset'scollectionmethodology.Thedata,sourcedfromtheCDC,
+introducedaconstraintinitsgenderclassificationbyutilizingabinaryframework(maleand
+female).Consequently,ourinsightsarecircumscribed,lackingnuanceforindividualsoutsidethe
+traditionalgenderbinary.Additionally,thetemporalconstraintofourdata,collectedduring
+2017-2018,necessitatesconsideration.TheonsetoftheCOVID-19pandemicin 2019 renders
+someofourconclusionspotentiallyobsolete.
+```
+```
+VI. Contributions
+● Michael:Fittedthemodelandtunedtheparameters
+● Nikhil:Interpretedthemodelandwroteoutthereport
+● Samuel:Visualizationandanalysisofthedata
+● Sarah:Experimentingonmodelsandwroteoutthereport
+```
+**VII. Reproducibility**
+Thissectionoutlinesthestepsanddetailsrequiredtoreproducetheanalysispresentedin
+thisreport.TheanalysiswasconductedusingR,andtheprimarylibrariesincluderandomforest
+(forrandomforestmodel),glmnet(forLASSOmodel),andtidyverse(forvisualizationofthe
+data).TherawdatasetwasobtainedfromCDC’s“DemographicVariablesandSampleWeights
+2017-201”,anddatacleaningwasperformedasdescribedinthe“Data”sectionabove.
+
+```
+Toachieveresultreproducibility,arandomseedof 42 wasusedthroughouttheanalysis.
+Followingtheoutlinedstepsinthe“Methods”sectionabovewillproducethesamekeyresults,
+suchasthebestlambdaforlassochosenbycrossvalidationandtheresultsofrandomforest.The
+completecodeisinanattachedrmdfileforeasyreplication.Runningthermdfileshould
+reproducetheresultsmentionedearlier,ensuringthereport'sreproducibility.
+```
+
